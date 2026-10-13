@@ -36,7 +36,7 @@ final class EQModel: ObservableObject {
 
     let engine = AudioEngine()
     private let analyzer = Analyzer()
-    private var smoothed = [Float](repeating: -120, count: Analyzer.points)
+    @Published private(set) var spectrum = [Float](repeating: -120, count: Analyzer.points)
     private var started = false
 
     init() {
@@ -57,6 +57,9 @@ final class EQModel: ObservableObject {
         AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &address, .main) { [weak self] _, _ in
             self?.restart()
         }
+        // O espectro se atualiza sozinho 30 vezes por segundo, inclusive durante o arrasto (modo .common).
+        let timer = Timer(timeInterval: 1.0 / 30, repeats: true) { [weak self] _ in self?.updateSpectrum() }
+        RunLoop.main.add(timer, forMode: .common)
     }
 
     private func restart() {
@@ -78,13 +81,14 @@ final class EQModel: ObservableObject {
     }
 
     /// Espectro suavizado: sobe rápido e desce devagar, como o RTA de mesa.
-    func spectrum() -> [Float] {
+    private func updateSpectrum() {
         let levels = analyzer.levelsDB(engine.ring.snapshot(), sampleRate: engine.sampleRate)
+        var next = spectrum
         for i in levels.indices {
-            let new = levels[i], old = smoothed[i]
-            smoothed[i] = new > old ? old + (new - old) * 0.6 : max(new, old - 0.8)
+            let new = levels[i], old = next[i]
+            next[i] = new > old ? old + (new - old) * 0.6 : max(new, old - 0.8)
         }
-        return smoothed
+        spectrum = next
     }
 }
 
@@ -114,9 +118,7 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             GeometryReader { geo in
-                TimelineView(.animation(minimumInterval: 1.0 / 30)) { _ in
-                    Canvas { ctx, size in draw(ctx, Graph(size: size)) }
-                }
+                Canvas { ctx, size in draw(ctx, Graph(size: size)) }
                 .contentShape(Rectangle())
                 .gesture(dragGesture(Graph(size: geo.size)))
                 .simultaneousGesture(SpatialTapGesture(count: 2).onEnded { tap in
@@ -184,7 +186,7 @@ struct ContentView: View {
         plotCtx.clip(to: Path(p))
 
         // Espectro ao vivo (atrás de tudo).
-        let levels = model.spectrum()
+        let levels = model.spectrum
         var spectrum = Path()
         spectrum.move(to: CGPoint(x: p.minX, y: p.maxY))
         for i in levels.indices {
