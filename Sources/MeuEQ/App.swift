@@ -41,7 +41,7 @@ final class EQModel: ObservableObject {
 
     init() {
         let saved = UserDefaults.standard
-        bands = saved.data(forKey: "bands").flatMap { try? JSONDecoder().decode([Band].self, from: $0) } ?? Band.defaults
+        bands = saved.data(forKey: "bands5").flatMap { try? JSONDecoder().decode([Band].self, from: $0) } ?? Band.defaults
         preampDB = saved.object(forKey: "preampDB") as? Double ?? 0
         enabled = saved.object(forKey: "enabled") as? Bool ?? true
     }
@@ -75,7 +75,7 @@ final class EQModel: ObservableObject {
     private func apply() {
         engine.eq.update(bands: bands, preampDB: preampDB, bypass: !enabled, sampleRate: engine.sampleRate)
         let saved = UserDefaults.standard
-        saved.set(try? JSONEncoder().encode(bands), forKey: "bands")
+        saved.set(try? JSONEncoder().encode(bands), forKey: "bands5")
         saved.set(preampDB, forKey: "preampDB")
         saved.set(enabled, forKey: "enabled")
     }
@@ -139,7 +139,7 @@ struct ContentView: View {
                     model.preampDB = 0
                 }
             }
-            Text("\(model.status)  ·  Arraste as bolinhas; clique duplo zera a banda.")
+            Text("\(model.status)  ·  Azul: som original. Linha branca: com EQ.  ·  Arraste as bolinhas; clique duplo zera a banda.")
                 .font(.callout).foregroundStyle(.secondary)
         }
         .padding(16)
@@ -198,8 +198,20 @@ struct ContentView: View {
             Gradient(colors: [Color.cyan.opacity(0.6), Color.cyan.opacity(0.08)]),
             startPoint: CGPoint(x: 0, y: p.minY), endPoint: CGPoint(x: 0, y: p.maxY)))
 
-        // Curva do EQ: soma de todas as bandas.
         let fs = model.engine.sampleRate
+
+        // Som tratado: linha fina por cima do original. Com o EQ desligado os dois são iguais.
+        if model.enabled {
+            let treated = Analyzer.treatedLevels(levels, bands: model.bands, preampDB: model.preampDB, sampleRate: fs)
+            var line = Path()
+            for i in treated.indices {
+                let point = CGPoint(x: g.x(Analyzer.freq(ofPoint: i)), y: g.ySpectrum(treated[i]))
+                i == 0 ? line.move(to: point) : line.addLine(to: point)
+            }
+            plotCtx.stroke(line, with: .color(.white.opacity(0.75)), lineWidth: 1.2)
+        }
+
+        // Curva do EQ: soma de todas as bandas.
         let filters = model.bands.map { Biquad.peaking($0, sampleRate: fs) }
         var curve = Path()
         let steps = 300
@@ -265,6 +277,14 @@ enum SelfTest {
         let i = (0..<Analyzer.points).min { abs(Analyzer.freq(ofPoint: $0) - f) < abs(Analyzer.freq(ofPoint: $1) - f) }!
         precondition(abs(levels[i] + 6) < 1, "analisador: \(levels[i]) dB")
         precondition(levels[Analyzer.points - 1] < -60, "analisador longe da senoide: \(levels[Analyzer.points - 1]) dB")
+
+        // Som tratado: +6 dB no centro da banda e +2 dB de ganho somam 8; longe da banda fica só o ganho.
+        let flat = [Float](repeating: -40, count: Analyzer.points)
+        let treated = Analyzer.treatedLevels(flat, bands: [Band(freq: 1000, gain: 6)], preampDB: 2, sampleRate: fs)
+        let at1k = (0..<Analyzer.points).min { abs(Analyzer.freq(ofPoint: $0) - 1000) < abs(Analyzer.freq(ofPoint: $1) - 1000) }!
+        precondition(abs(treated[at1k] + 32) < 0.1, "tratado no centro: \(treated[at1k]) dB")
+        precondition(abs(treated[0] + 38) < 0.1, "tratado longe: \(treated[0]) dB")
+        precondition(Band.defaults.count == 5, "cinco pontos")
 
         print("selftest ok")
     }

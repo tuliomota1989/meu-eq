@@ -8,7 +8,7 @@ struct Band: Codable, Equatable {
     var gain: Double
 
     static let q = 1.41  // largura fixa, mais ou menos uma oitava
-    static let defaults: [Band] = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+    static let defaults: [Band] = [63, 250, 1000, 4000, 12000]
         .map { Band(freq: $0, gain: 0) }
 }
 
@@ -41,7 +41,7 @@ struct Biquad {
 /// Equalizador que roda dentro do callback de áudio: lá dentro não aloca memória nem espera lock.
 /// A interface grava os ajustes em `pending`; o áudio copia para `active` quando consegue o lock.
 final class EQProcessor {
-    static let maxBands = 10
+    static let maxBands = Band.defaults.count
     private let active = UnsafeMutablePointer<Biquad>.allocate(capacity: maxBands)
     private let pending = UnsafeMutablePointer<Biquad>.allocate(capacity: maxBands)
     private let state = UnsafeMutablePointer<Double>.allocate(capacity: maxBands * 2 * 2)  // banda × canal × (z1, z2)
@@ -154,6 +154,16 @@ final class Analyzer {
     }
 
     deinit { vDSP_destroy_fftsetup(setup) }
+
+    /// Som tratado: espectro original somado ao que o EQ e o ganho fazem em cada frequência.
+    // ponytail: calculado, não medido, então não mostra o corte em ±1; medir com um segundo buffer e outra FFT se isso fizer falta.
+    static func treatedLevels(_ levels: [Float], bands: [Band], preampDB: Double, sampleRate: Double) -> [Float] {
+        let filters = bands.map { Biquad.peaking($0, sampleRate: sampleRate) }
+        return levels.indices.map { i in
+            let f = freq(ofPoint: i)
+            return levels[i] + Float(filters.reduce(preampDB) { $0 + $1.responseDB(at: f, sampleRate: sampleRate) })
+        }
+    }
 
     /// Cada ponto mede uma faixa de 1/6 de oitava em volta dele (as faixas se sobrepõem, o desenho fica liso).
     private func prepareRanges(sampleRate: Double) {

@@ -1,7 +1,7 @@
 # MeuEQ
 
 Equalizador para Mac com espectro em tempo real (RTA) desenhado atrás da curva do EQ,
-no estilo da tela de EQ das mesas de som digitais. Só EQ de 10 bandas e ganho: sem
+no estilo da tela de EQ das mesas de som digitais. Só EQ de 5 bandas e ganho: sem
 efeitos, sem driver e sem conta.
 
 *Mac system-wide equalizer with a real-time spectrum analyzer behind the EQ curve. No driver needed.*
@@ -14,7 +14,8 @@ efeitos, sem driver e sem conta.
   Process Tap), aplica o EQ e toca na saída de som que estiver escolhida.
 - Não instala driver. Fechou o app, o som volta ao normal.
 - Acompanha a troca de saída: fone, caixa, HDMI ou Bluetooth.
-- O espectro mostra o som depois do EQ, ou seja, o que você está ouvindo.
+- O espectro azul mostra o som original, antes do EQ, para corrigir olhando as sobras. A
+  linha branca mostra como ele fica com o EQ e o ganho.
 - Os ajustes ficam salvos para a próxima vez.
 
 ## Requisitos

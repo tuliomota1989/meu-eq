@@ -160,8 +160,8 @@ final class AudioEngine {
             right.update(from: pr, count: frames)
         }
 
+        ring.push(left, right, frames: frames)  // antes do EQ: o espectro mostra o som original
         eq.process(left, right, frames: frames)
-        ring.push(left, right, frames: frames)
 
         guard let first = outs.first, let op = first.mData?.assumingMemoryBound(to: Float.self) else { return }
         let ch = Int(first.mNumberChannels)
