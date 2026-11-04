@@ -114,6 +114,7 @@ struct Graph {
 
 struct ContentView: View {
     @ObservedObject var model: EQModel
+    private static let mascot = Bundle.main.image(forResource: "mascote")  // só existe dentro do .app
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -185,7 +186,13 @@ struct ContentView: View {
         var plotCtx = ctx
         plotCtx.clip(to: Path(p))
 
-        // Espectro ao vivo (atrás de tudo).
+        // Imagem no canto direito, de pé na base do gráfico, atrás da onda e da curva.
+        if let mascot = Self.mascot {
+            let side = 148.0  // tamanho fixo, não cresce com a janela
+            plotCtx.draw(Image(nsImage: mascot), in: CGRect(x: p.maxX - side, y: p.maxY - side, width: side, height: side))
+        }
+
+        // Espectro ao vivo.
         let levels = model.spectrum
         var spectrum = Path()
         spectrum.move(to: CGPoint(x: p.minX, y: p.maxY))

@@ -23,14 +23,35 @@ efeitos, sem driver e sem conta.
 macOS 15 ou mais novo. A versão pronta para baixar é para Mac com chip Apple (M1 ou mais
 novo).
 
-## Instalar a versão pronta
+## Como instalar, passo a passo
 
-1. Baixe o `MeuEQ.zip` em [Releases](../../releases) e descompacte.
-2. Arraste o `MeuEQ.app` para a pasta Aplicativos.
-3. Na primeira vez, o macOS bloqueia a abertura, porque o app não é assinado por um
-   desenvolvedor registrado na Apple. Abra **Ajustes do Sistema › Privacidade e
-   Segurança** e clique em **Abrir Mesmo Assim**.
-4. Aceite a permissão para gravar o áudio do sistema. É ela que deixa o app equalizar.
+Leva uns dois minutos. Não precisa instalar mais nada.
+
+1. **Confira o seu Mac.** No menu da Apple, abra **Sobre Este Mac**. O chip precisa ser
+   Apple (M1 ou mais novo) e o macOS, 15 ou mais novo. Mac com processador Intel não roda
+   esta versão.
+2. **Baixe o app:** [clique aqui para baixar o MeuEQ.zip](https://github.com/tuliomota1989/meu-eq/releases/latest/download/MeuEQ.zip).
+3. **Descompacte.** Na pasta Downloads, clique duas vezes em `MeuEQ.zip`. Vai aparecer o
+   `MeuEQ.app`.
+4. **Arraste o `MeuEQ.app` para a pasta Aplicativos.**
+5. **Tente abrir.** Clique duas vezes no MeuEQ, dentro de Aplicativos. O macOS vai
+   bloquear, porque o app não é assinado por um desenvolvedor registrado na Apple. Isso é
+   esperado na primeira vez: feche o aviso, sem mover o app para o Lixo.
+6. **Libere o app.** Abra **Ajustes do Sistema › Privacidade e Segurança**, role até a parte
+   de **Segurança**, clique em **Abrir Mesmo Assim** ao lado do MeuEQ e confirme com a sua
+   senha.
+7. **Aceite a permissão de áudio.** Quando o app pedir para gravar o áudio do sistema,
+   permita. É ela que deixa o app receber o som para equalizar.
+
+Pronto. Coloque uma música para tocar e a onda azul aparece no gráfico.
+
+### Se algo der errado
+
+- **O app abriu, mas não aparece a onda ou o EQ não muda o som:** abra **Ajustes do Sistema
+  › Privacidade e Segurança › Gravação de Tela e Áudio do Sistema**, ligue o MeuEQ, feche o
+  app e abra de novo.
+- **Quero o som normal de volta:** é só fechar o MeuEQ.
+- **Quero desinstalar:** feche o app e mande o `MeuEQ.app` para o Lixo.
 
 ## Compilar
 
